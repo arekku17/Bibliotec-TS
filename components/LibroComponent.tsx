@@ -1,9 +1,12 @@
 import { colorEstado } from '@/lib/colorEstado'
 import Image from 'next/image'
-import React from 'react'
+import React, { ReactNode } from 'react'
 
 export const LibroComponent = (props:
-  { imgUrl: string, estado: 'Pendiente' | 'Atrasado' | 'Entregado', onClick: () => void }
+  { imgUrl: string,
+    estado: 'Pendiente' | 'Atrasado' | 'Entregado',
+    onClick: () => void,
+    children?: ReactNode }
 ) => {
 
 
@@ -33,6 +36,7 @@ export const LibroComponent = (props:
       <div className={`w-full mt-0 h-2rem flex justify-content-center align-items-center ${colorEstado(props.estado)}`}>
         <div className='text-white text-center font-bold'>{props.estado}</div>
       </div>
+      {props.children}
     </section>
   )
 }
