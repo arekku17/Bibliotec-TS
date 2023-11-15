@@ -1,14 +1,1 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'www.google.com'
-      },
-    ],
-  },
-}
-
-module.exports = nextConfig
+module.exports = { images: { domains: ['pupalibreria.com.mx', 'marketplace.canva.com'], formats: ['image/avif', 'image/webp'], }, }

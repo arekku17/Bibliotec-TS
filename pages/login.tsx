@@ -10,6 +10,13 @@ import { LayoutContext } from '../layout/context/layoutcontext';
 import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import { Page } from '../types/types';
+import Image from 'next/image';
+import portada from '../public/images/portada.jpg'
+import logo from '../public/layout/images/logo-bibliotec.png'
+
+import styles from '../styles/Login.module.scss';
+
+import { useSession, signIn, signOut } from "next-auth/react"
 
 const LoginPage: Page = () => {
     const [password, setPassword] = useState('');
@@ -17,45 +24,60 @@ const LoginPage: Page = () => {
     const { layoutConfig } = useContext(LayoutContext);
 
     const router = useRouter();
-    const containerClassName = classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' });
+
+    const { data: session } = useSession()
+
+    const handleLoginGoogle = () => {
+        signIn("google")
+    }
+
+
+    if (session) {
+        window.location.replace('/');
+    }
 
     return (
-        <div className={containerClassName}>
-            <div className="flex flex-column align-items-center justify-content-center">
-                <img src={`/layout/images/logo-${layoutConfig.colorScheme === 'light' ? 'dark' : 'white'}.svg`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" />
-                <div style={{ borderRadius: '56px', padding: '0.3rem', background: 'linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)' }}>
-                    <div className="w-full surface-card py-8 px-5 sm:px-8" style={{ borderRadius: '53px' }}>
-                        <div className="text-center mb-5">
-                            <img src="/demo/images/login/avatar.png" alt="Image" height="50" className="mb-3" />
-                            <div className="text-900 text-3xl font-medium mb-3">Welcome, Isabel!</div>
-                            <span className="text-600 font-medium">Sign in to continue</span>
+        <div className='h-screen p-4 md:py-5 m-auto w-full md:w-9'>
+
+            <div className='grid h-full bg-white shadow-4'>
+                <div className='hidden lg:inline col-0 md:col-5 p-0'>
+                    <Image
+                        src={portada}
+                        alt="Portada"
+                        className='w-full h-full bg-cover m-0'
+                        style={{ objectFit: "cover", margin: 0 }}
+                    />
+                </div>
+                <div className="col-12 lg:col-7">
+                    <div className='p-4 lg:p-7'>
+                        <Image
+                            src={logo}
+                            alt="Logo Bibliotec"
+                            className='w-10rem lg:w-15rem h-auto'
+                        />
+                        <p className='text-5xl font-bold mt-3'>¡Bienvenido!</p>
+                        <div className="linea-divisora w-full lg:w-6"></div>
+                        <div className='flex flex-column gap-3 align-items-center m-auto md:m-0 w-fit md:flex-row '>
+                            <i className='pi pi-user text-7xl md:text-5xl'></i>
+                            <p className='text-3xl md:text-5xl'>Inicio de Sesión</p>
                         </div>
 
-                        <div>
-                            <label htmlFor="email1" className="block text-900 text-xl font-medium mb-2">
-                                Email
-                            </label>
-                            <InputText id="email1" type="text" placeholder="Email address" className="w-full md:w-30rem mb-5" style={{ padding: '1rem' }} />
-
-                            <label htmlFor="password1" className="block text-900 font-medium text-xl mb-2">
-                                Password
-                            </label>
-                            <Password inputId="password1" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" toggleMask className="w-full mb-5" inputClassName="w-full p-3 md:w-30rem"></Password>
-
-                            <div className="flex align-items-center justify-content-between mb-5 gap-5">
-                                <div className="flex align-items-center">
-                                    <Checkbox inputId="rememberme1" checked={checked} onChange={(e) => setChecked(e.checked ?? false)} className="mr-2"></Checkbox>
-                                    <label htmlFor="rememberme1">Remember me</label>
+                        <div className='w-full md:w-9'>
+                            <div className={styles.google_btn} onClick={handleLoginGoogle}>
+                                <div className={styles.google_icon_wrapper}>
+                                    <img className={styles.google_icon} src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" />
                                 </div>
-                                <a className="font-medium no-underline ml-2 text-right cursor-pointer" style={{ color: 'var(--primary-color)' }}>
-                                    Forgot password?
-                                </a>
+                                <p className={styles.btn_text}><b>Iniciar sesión con cuenta institucional</b></p>
                             </div>
-                            <Button label="Sign In" className="w-full p-3 text-xl" onClick={() => router.push('/')}></Button>
                         </div>
+
+
+                        <p className='mt-5 text-center text-blue-800 md:text-left md:text-xl '>Debe de ser una cuenta institucional</p>
                     </div>
                 </div>
             </div>
+
+
         </div>
     );
 };
@@ -64,7 +86,6 @@ LoginPage.getLayout = function getLayout(page) {
     return (
         <React.Fragment>
             {page}
-            <AppConfig simple />
         </React.Fragment>
     );
 };

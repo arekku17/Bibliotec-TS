@@ -26,9 +26,35 @@ export default function Home() {
             confirma tu salida también de
             la biblioteca</p>
         </div>
-
       </div>
 
+      <div className="col-12 lg:col-6">
+        <div className="card mb-0">
+          <div className="flex justify-content-between mb-3">
+            <div>
+              <span className="block text-500 font-medium mb-3">Estado en la Biblioteca</span>
+              <div className="text-900 font-bold text-xl text-red-500">SIN INGRESAR</div>
+            </div>
+            <div className="flex align-items-center justify-content-center bg-red-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
+              <i className="pi pi-book text-red-500 text-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="col-12 lg:col-6">
+        <div className="card mb-0">
+          <div className="flex justify-content-between mb-3">
+            <div>
+              <span className="block text-500 font-medium mb-3">Tiempo adentro</span>
+              <div className="text-900 font-bold text-xl text-red-500">0 MIN</div>
+            </div>
+            <div className="flex align-items-center justify-content-center bg-red-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
+              <i className="pi pi-clock text-red-500 text-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
 

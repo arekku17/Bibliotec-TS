@@ -8,20 +8,29 @@ import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 import '../styles/layout/layout.scss';
 
+import { SessionProvider } from "next-auth/react";
+
 type Props = AppProps & {
-  Component: Page;
+    Component: Page;
 };
 
 export default function MyApp({ Component, pageProps }: Props) {
-  if (Component.getLayout) {
-      return <LayoutProvider>{Component.getLayout(<Component {...pageProps} />)}</LayoutProvider>;
-  } else {
-      return (
-          <LayoutProvider>
-              <Layout>
-                  <Component {...pageProps} />
-              </Layout>
-          </LayoutProvider>
-      );
-  }
+    if (Component.getLayout) {
+        return (
+            <SessionProvider session={pageProps.session}>
+                <LayoutProvider>{Component.getLayout(<Component {...pageProps} />)}</LayoutProvider>;
+            </SessionProvider>
+        )
+    } else {
+        return (
+            <SessionProvider session={pageProps.session}>
+                <LayoutProvider>
+                    <Layout>
+                        <Component {...pageProps} />
+                    </Layout>
+                </LayoutProvider>
+            </SessionProvider>
+
+        );
+    }
 }

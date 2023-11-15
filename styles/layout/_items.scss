@@ -1,0 +1,25 @@
+.linea-divisora {
+    height: 3px;
+    background-color: #3BB8D8;
+    /* Color azul para la línea divisora */
+    margin: 30px 0;
+    /* Ajusta el margen según tus necesidades */
+}
+
+.colorTransparente {
+    background-color: rgba(0, 0, 0, 0.633);
+}
+
+
+.overlay {
+    opacity: 0;
+    transition: .4s ease;
+}
+
+.containerOverlay{
+    cursor: pointer;
+}
+
+.containerOverlay:hover .overlay {
+    opacity: 1;
+}
