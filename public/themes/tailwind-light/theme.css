@@ -2665,8 +2665,8 @@
   border: 1px solid #f4f4f5;
   border-width: 0 0 1px 0;
   font-weight: 500;
-  color: #6b7280;
-  background: #fafafa;
+  color: #fff;
+  background: #2596be;
   transition: none;
 }
 .p-datatable .p-datatable-tfoot > tr > td {
