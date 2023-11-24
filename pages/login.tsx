@@ -36,6 +36,7 @@ const LoginPage: Page = () => {
         window.location.replace('/');
     }
 
+
     return (
         <div className='h-screen p-4 md:py-5 m-auto w-full md:w-9'>
 
@@ -65,7 +66,7 @@ const LoginPage: Page = () => {
                         <div className='w-full md:w-9'>
                             <div className={styles.google_btn} onClick={handleLoginGoogle}>
                                 <div className={styles.google_icon_wrapper}>
-                                    <img className={styles.google_icon} src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" />
+                                    <img className={styles.google_icon} src="https://companieslogo.com/img/orig/GOOG-0ed88f7c.png" />
                                 </div>
                                 <p className={styles.btn_text}><b>Iniciar sesión con cuenta institucional</b></p>
                             </div>

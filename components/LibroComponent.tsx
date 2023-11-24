@@ -1,4 +1,5 @@
 import { colorEstado } from '@/lib/colorEstado'
+import moment from 'moment'
 import Image from 'next/image'
 import React, { ReactNode } from 'react'
 
@@ -6,6 +7,7 @@ export const LibroComponent = (props:
   { imgUrl: string,
     estado: 'Pendiente' | 'Atrasado' | 'Entregado',
     onClick: () => void,
+    fechaEntrega: Date
     children?: ReactNode }
 ) => {
 
@@ -21,9 +23,9 @@ export const LibroComponent = (props:
          flex flex-column justify-content-center align-items-center
          overlay'>
           <p className='text-white text-2xl font-bold'>Entrega</p>
-          <p className='text-yellow-300'>20/10/2023</p>
+          <p className='text-yellow-300'>{moment(props.fechaEntrega).format("DD/MM/YYYY")}</p>
         </div>
-
+        
         <Image
           src={props.imgUrl}
           alt='Principito'

@@ -6,7 +6,7 @@ declare global {
         MONGODB_URI: string;
         JWT_KEY: string;
         NEXTAUTH_SECRET: string;
-        API_URL: string;
+        NEXT_PUBLIC_API_URL: string;
         NEXT_PUBLIC_CLIENT_URL: string;
       }
     }

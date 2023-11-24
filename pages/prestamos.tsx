@@ -6,31 +6,57 @@ import { DialogComponentProps } from '@/types/typesDialog';
 import { VerPrestamoDialog } from '@/components/VerPrestamoDialog ';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { Column } from 'primereact/column';
-import { DataTable } from 'primereact/datatable';
+import { DataTable, DataTableSelection, DataTableSelectionChangeEvent } from 'primereact/datatable';
+import { LibroItem, PrestamoItem } from '@/types/custom';
+import { SolicitarPrestamoDialog } from '@/components/SolicitarPrestamoDialog';
+import useSWR from "swr"
+import { getSession, useSession } from 'next-auth/react';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { getPrestamos, getPrestamosById } from '@/services/prestamo/api';
+import { jwtDecode } from "jwt-decode";
+
+const fetcher = (url: String, token: String) => fetch(process.env.NEXT_PUBLIC_API_URL + url,
+  { headers: { "x-access-token": token } }).then((res) => res.json());
 
 
 
-const inter = Inter({ subsets: ['latin'] })
+export const getServerSideProps = (async (context) => {
+  const session = await getSession(context)
+  const idUsuario = jwtDecode(session.jwt)._id
+  const res = await getPrestamosById(session.jwt, idUsuario)
+  return { props: { prestamos: res.data } }
+}) satisfies GetServerSideProps<{
+  prestamos: Array<PrestamoItem>
+}>
 
-export default function Prestamos() {
 
-  const [selectedPrestamo, setSelectedPrestamo] = useState(10);
-  const [selectedLibro, setSelectedLibro] = useState(null);
+export default function Prestamos({
+  prestamos,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+
+  const [selectedPrestamo, setSelectedPrestamo] = useState<PrestamoItem>({});
+  const [selectedLibro, setSelectedLibro] = useState<LibroItem>({});
+
 
   const [showSolicitar, setShowSolicitar] = useState(false);
   const [showPrestamo, setShowPrestamo] = useState(false);
 
+  const [filtro, setFiltro] = useState('');
+
+
   const op = useRef<OverlayPanel>(null);
   const isMounted = useRef(false);
 
+  const { data: session } = useSession()
 
-  const libros = [
-    {
-      id: '1000',
-      nombre: 'El Principito asdasdasdasdas',
-      image: 'https://pupalibreria.com.mx/wp-content/uploads/2023/02/El-principito-PORTADA.jpg'
-    }
-  ]
+  console.log(prestamos)
+
+  const { data, error, isLoading } = useSWR(
+    [`/api/v1/libro/filtro?filtro=${filtro}`, session?.jwt],
+    ([url, tokenCookie]) => fetcher(url, tokenCookie));
+
+
+  console.log(session)
 
   useEffect(() => {
     if (isMounted.current && selectedLibro) {
@@ -47,16 +73,27 @@ export default function Prestamos() {
   }
 
   const imageBody = (rowData: any) => {
-    return <img src={`${rowData.image}`} alt={rowData.image} className="product-image w-5rem" />
+    return <img src={`${rowData.imagenLibro}`} alt={rowData.image} className="product-image w-5rem" />
   }
 
   const priceBody = (rowData: any) => {
     return formatCurrency(rowData.price);
   }
 
-  const handlePrestamo = () => {
+  const handleSolicitarPrestamo = () => {
+    setShowSolicitar(true)
+  }
+
+  const handlePrestamo = (prestamo: PrestamoItem) => {
+    setSelectedPrestamo(prestamo)
     setShowPrestamo(true)
   }
+
+  const onLibroSelect = (libro: LibroItem) => {
+    setSelectedLibro(libro);
+    handleSolicitarPrestamo();
+  };
+
 
   const ObjSolicitarPrestamo: DialogComponentProps = {
     header: "Solicitar Prestamo",
@@ -65,10 +102,17 @@ export default function Prestamos() {
   }
 
   const ObjVerPrestamo: DialogComponentProps = {
-    header: `Prestamo de Libro #${selectedPrestamo}`,
+    header: `Prestamo de Libro #${selectedPrestamo.id }`,
     onVisible: showPrestamo,
-    onHide: () => { setShowPrestamo(false) },
+    onHide: () => { setShowPrestamo(false); setSelectedPrestamo({}) },
   }
+
+  useEffect(() => {
+    if (!showSolicitar) {
+      setSelectedLibro({});
+    }
+  }, [showSolicitar])
+
 
   return (
     <div className="grid h-full">
@@ -77,39 +121,17 @@ export default function Prestamos() {
           <h1 className='text-800 text-2xl text-left'>Libros prestados</h1>
 
           <div className='grid'>
-            <LibroComponent
-              imgUrl='https://marketplace.canva.com/EAE8SCCNlvo/1/0/1003w/canva-verde-y-rosa-ciencia-ficci%C3%B3n-portada-de-libro-SSKxUZUBOJg.jpg'
-              estado='Pendiente'
-              onClick={handlePrestamo}
-            />
-            <LibroComponent
-              imgUrl='https://pupalibreria.com.mx/wp-content/uploads/2023/02/El-principito-PORTADA.jpg'
-              estado='Atrasado'
-              onClick={handlePrestamo}
-            />
-            <LibroComponent
-              imgUrl='https://pupalibreria.com.mx/wp-content/uploads/2023/02/El-principito-PORTADA.jpg'
-              estado='Entregado'
-              onClick={handlePrestamo}
-            />
-            <LibroComponent
-              imgUrl='https://pupalibreria.com.mx/wp-content/uploads/2023/02/El-principito-PORTADA.jpg'
-              estado='Entregado'
-              onClick={handlePrestamo}
-            />
-            <LibroComponent
-              imgUrl='https://pupalibreria.com.mx/wp-content/uploads/2023/02/El-principito-PORTADA.jpg'
-              estado='Entregado'
-              onClick={handlePrestamo}
-            />
-            <LibroComponent
-              imgUrl='https://pupalibreria.com.mx/wp-content/uploads/2023/02/El-principito-PORTADA.jpg'
-              estado='Entregado'
-              onClick={handlePrestamo}
-            />
+            {prestamos.map(item => <LibroComponent
+              imgUrl={item.libro.imagenLibro}
+              estado={item.estado}
+              fechaEntrega={item.estimado_regreso}
+              onClick={() => handlePrestamo(item)}
+              key={item._id}
+            />)}
           </div>
 
-          <VerPrestamoDialog propsDialog={ObjVerPrestamo} />
+          <VerPrestamoDialog propsDialog={ObjVerPrestamo} dataPrestamo={selectedPrestamo}/>
+          <SolicitarPrestamoDialog propsDialog={ObjSolicitarPrestamo} dataLibro={selectedLibro} />
 
 
         </div>
@@ -125,6 +147,8 @@ export default function Prestamos() {
                 <div className='bg-gray-200 p-2'>
                   <input id="firstname1" type="text" className="text-base text-color 
             p-2 border-none border-round appearance-none outline-none w-full bg-gray-200 text-center"
+                    value={filtro}
+                    onChange={e => setFiltro(e.target.value)}
                     placeholder='Buscar libro' />
                 </div>
                 <div className='bg-cyan-400 p-2 text-center cursor-pointer hover:bgc-cyan-800' onClick={(e) => op.current?.toggle(e)}>
@@ -133,11 +157,13 @@ export default function Prestamos() {
                   </p>
                 </div>
                 <OverlayPanel ref={op} showCloseIcon dismissable={false} style={{ width: "80%" }}>
-                  <DataTable value={libros} selectionMode="single" paginator rows={5} selection={selectedLibro} onSelectionChange={(e) => setSelectedLibro(e.value)}>
+                  <DataTable value={data} selectionMode="single" paginator rows={3}
+                    selection={selectedLibro}
+                    onSelectionChange={(e) => onLibroSelect(e.value)}>
                     <Column field="id" header="ID" sortable style={{ minWidth: '1rem' }} />
-                    <Column field="nombre" header="Nombre" sortable style={{ minWidth: '1rem', padding: 0 }} />
+                    <Column field="titulo" header="Nombre" sortable style={{ minWidth: '1rem', padding: 0 }} />
 
-                    <Column header="Image" body={imageBody} style={{ minWidth: '1rem' }} />
+                    <Column header="Portada" body={imageBody} style={{ minWidth: '1rem' }} />
                   </DataTable>
                 </OverlayPanel>
               </div>
@@ -147,52 +173,11 @@ export default function Prestamos() {
           <div className='col-12'>
             <div className='card'>
               <h1 className='text-800 text-2xl text-left'>Deudas</h1>
-              <p className='text-2xl font-bold text-red-500'>Deuda Actual: $500</p>
+              <p className='text-2xl font-bold text-red-500'>Deuda Actual: $0</p>
               <div className='grid'>
-                <LibroComponent
-                  imgUrl='https://marketplace.canva.com/EAE8SCCNlvo/1/0/1003w/canva-verde-y-rosa-ciencia-ficci%C3%B3n-portada-de-libro-SSKxUZUBOJg.jpg'
-                  estado='Atrasado'
-                  onClick={handlePrestamo}
-                >
-                  <p className='text-2xl mt-3 text-red-300 font-bold'>Deuda: $10</p>
-                </LibroComponent>
-                <LibroComponent
-                  imgUrl='https://marketplace.canva.com/EAE8SCCNlvo/1/0/1003w/canva-verde-y-rosa-ciencia-ficci%C3%B3n-portada-de-libro-SSKxUZUBOJg.jpg'
-                  estado='Atrasado'
-                  onClick={handlePrestamo}
-                >
-                  <p className='text-2xl mt-3 text-red-300 font-bold'>Deuda: $10</p>
-                </LibroComponent>
-                <LibroComponent
-                  imgUrl='https://marketplace.canva.com/EAE8SCCNlvo/1/0/1003w/canva-verde-y-rosa-ciencia-ficci%C3%B3n-portada-de-libro-SSKxUZUBOJg.jpg'
-                  estado='Atrasado'
-                  onClick={handlePrestamo}
-                >
-                  <p className='text-2xl mt-3 text-red-300 font-bold'>Deuda: $10</p>
-                </LibroComponent>
-                <LibroComponent
-                  imgUrl='https://marketplace.canva.com/EAE8SCCNlvo/1/0/1003w/canva-verde-y-rosa-ciencia-ficci%C3%B3n-portada-de-libro-SSKxUZUBOJg.jpg'
-                  estado='Atrasado'
-                  onClick={handlePrestamo}
-                >
-                  <p className='text-2xl mt-3 text-red-300 font-bold'>Deuda: $10</p>
-                </LibroComponent>
-                <LibroComponent
-                  imgUrl='https://marketplace.canva.com/EAE8SCCNlvo/1/0/1003w/canva-verde-y-rosa-ciencia-ficci%C3%B3n-portada-de-libro-SSKxUZUBOJg.jpg'
-                  estado='Atrasado'
-                  onClick={handlePrestamo}
-                >
-                  <p className='text-2xl mt-3 text-red-300 font-bold'>Deuda: $10</p>
-                </LibroComponent>
-                <LibroComponent
-                  imgUrl='https://marketplace.canva.com/EAE8SCCNlvo/1/0/1003w/canva-verde-y-rosa-ciencia-ficci%C3%B3n-portada-de-libro-SSKxUZUBOJg.jpg'
-                  estado='Atrasado'
-                  onClick={handlePrestamo}
-                >
-                  <p className='text-2xl mt-3 text-red-300 font-bold'>Deuda: $10</p>
-                </LibroComponent>
-
                 
+
+
               </div>
 
             </div>
